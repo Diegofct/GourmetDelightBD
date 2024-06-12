@@ -170,13 +170,54 @@ como parámetros el ID del menú y el nuevo precio, y actualice el precio del me
 ```sql
 DELIMITER$$
 CREATE PROCEDURE ActualizarPrecioMenu(
-    IN idMenu INT,
+    IN aidMenu INT,
     IN precionuevo DECIMAL(10,2)
 )
 BEGIN
     UPDATE menus 
     SET precio = precionuevo 
-    WHERE id_menu = aidMenu;
+    WHERE idMenu = aidMenu;
 END $$
+DELIMITER ;
+```
+
+4. Crea un procedimiento almacenado llamado EliminarCliente que reciba como
+parámetro el ID del cliente y elimine el cliente junto con todos sus pedidos y los detalles de los pedidos.
+
+```sql
+DELIMITER $$
+CREATE PROCEDURE EliminarCliente(
+    IN p_idClienteEliminar INT
+)
+BEGIN
+    DELETE FROM DetallePedido 
+    WHERE idPedido IN (SELECT idPedido FROM Pedido WHERE idcliente = p_idClienteEliminar);
+    
+    DELETE FROM Pedido 
+    WHERE idCliente = p_idClienteEliminar;
+    
+    DELETE FROM cliente
+    WHERE idCliente = p_idClienteEliminar;
+END$$
+DELIMITER ;
+```
+```sql
+call EliminarCliente(4);
+```
+5. Crea un procedimiento almacenado llamado TotalGastadoPorCliente que reciba
+como parámetro el ID del cliente y devuelva el total gastado por ese cliente en todos sus pedidos.
+
+```sql
+DELIMITER $$
+CREATE PROCEDURE TotalGastadoPorCliente(
+    IN c_idCliente INT 
+)
+BEGIN
+    SELECT c.nombre, SUM(p.total) AS TotalGastado 
+    FROM cliente c 
+    JOIN Pedido p ON p.idCliente = c.idCliente
+    WHERE c.idCliente = c_idCliente
+    GROUP BY c.nombre;
+END$$
 DELIMITER ;
 ```
